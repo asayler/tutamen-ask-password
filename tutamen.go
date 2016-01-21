@@ -21,6 +21,7 @@ const (
 	TOKEN_APPROVED    = "approved"
 	TOKEN_PENDING     = "pending"
 	TOKEN_DENIED      = "denied"
+	RETRY_INTERVAL    = 5 * time.Second
 )
 
 type AuthorizationRequest struct {
@@ -72,7 +73,7 @@ func TutamenGetPassword() (string, error) {
 		if err == nil {
 			break
 		}
-		time.Sleep(5 * time.Second)
+		time.Sleep(RETRY_INTERVAL)
 	}
 	fmt.Println("Token:", token)
 
