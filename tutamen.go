@@ -55,9 +55,15 @@ func TutamenGetPassword() (string, error) {
 	fmt.Println("Using hardcoded secret UUID:      ", SECRET)
 	fmt.Println("Using hardcoded auth URI:         ", AUTH_URI)
 
-	client := getClient()
+	client, err := getClient()
+	if err != nil {
+		return "", errors.New("Error creating HTTP Client: " + err.Error())
+	}
 
-	auth   = getAuthorization(client)
+	auth, err = getAuthorization(client)
+	if err != nil {
+		return "", errors.New("Error getting authorization: " + err.Error())
+	}
 	fmt.Println("Authorization:", auth)
 
 	for {
@@ -72,18 +78,17 @@ func TutamenGetPassword() (string, error) {
 
 	secret, err = getSecret(client, token)
 	if err != nil {
-		return "", err
+		return "", errors.New("Error getting secret: " + err.Error())
 	}
 
 	return secret, nil
 }
 
-func getClient() *http.Client {
+func getClient() (*http.Client, error) {
 
 	x509, err := tls.LoadX509KeyPair(TLS_CRT_PATH, TLS_KEY_PATH)
 	if err != nil {
-		fmt.Println(err)
-		return nil
+		return nil, err
 	}
 
 	tr := &http.Transport {
@@ -92,10 +97,10 @@ func getClient() *http.Client {
 		},
 	}
 
-	return &http.Client{Transport: tr}
+	return &http.Client{Transport: tr}, nil
 }
 
-func getAuthorization(client *http.Client) string {
+func getAuthorization(client *http.Client) (string, error) {
 
 	// Get
 
@@ -106,21 +111,19 @@ func getAuthorization(client *http.Client) string {
 	})
 
 	if err != nil {
-		fmt.Println(err)
-		return "-error"
+		return "", err
 	}
 
 	resp, err := client.Post(AUTH_URI, "application/json", bytes.NewBuffer(body))
 	if err != nil {
-		fmt.Println(err)
-		return "-error"
+		return "", err
 	} else {
 		defer resp.Body.Close()
 	}
 
+	rbody, _ := ioutil.ReadAll(resp.Body)
 	fmt.Println("Response Status:", resp.Status)
 	fmt.Println("Response Headers:", resp.Header)
-	rbody, _ := ioutil.ReadAll(resp.Body)
 	fmt.Println("Response Body:", string(rbody))
 
 	// Parse
@@ -129,11 +132,10 @@ func getAuthorization(client *http.Client) string {
 
 	err = json.Unmarshal(rbody, &m)
 	if err != nil {
-		fmt.Println(err)
-		return "-error"
+		return "", err
 	}
 
-	return m.Authorizations[0]
+	return m.Authorizations[0], nil
 }
 
 func getToken(client *http.Client, authorization string) (string, error) {
@@ -189,9 +191,9 @@ func getSecret(client *http.Client, token string) (string, error) {
 		defer resp.Body.Close()
 	}
 
+	rbody, _ := ioutil.ReadAll(resp.Body)
 	fmt.Println("Response Status:", resp.Status)
 	fmt.Println("Response Headers:", resp.Header)
-	rbody, _ := ioutil.ReadAll(resp.Body)
 	fmt.Println("Response Body:", string(rbody))
 
 	var m SecretReply
