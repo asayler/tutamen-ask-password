@@ -17,6 +17,7 @@ const (
 	TLS_KEY_PATH      = "/tut.key"
 	TLS_CRT_PATH      = "/tut.crt"
 	AUTH_URI          = "https://ac.tutamen-test.bdr1.volaticus.net/api/v1/authorizations/"
+	SECRET_URI        = "https://ss.tutamen-test.bdr1.volaticus.net/api/v1/collections/" + COLLECTION + "/secrets/" + SECRET + "/versions/latest/"
 	TOKEN_APPROVED    = "approved"
 	TOKEN_PENDING     = "pending"
 	TOKEN_DENIED      = "denied"
@@ -175,10 +176,7 @@ func getToken(client *http.Client, authorization string) (string, error) {
 
 func getSecret(client *http.Client, token string) (string, error) {
 
-	url := "https://ss.tutamen-test.bdr1.volaticus.net/api/v1/collections/" + COLLECTION + "/secrets/" + SECRET + "/versions/latest/"
-	fmt.Println("Getting Secret From:", url)
-
-	req, err := http.NewRequest("GET", url, nil)
+	req, err := http.NewRequest("GET", SECRET_URI, nil)
 	if err != nil {
 		return "", err
 	}
