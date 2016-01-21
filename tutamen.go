@@ -67,13 +67,9 @@ func TutamenGetPassword() (string, error) {
 	}
 	fmt.Println("Authorization:", auth)
 
-	for {
-		// TODO don't break on pending
-		token, err = getToken(client, auth)
-		if err == nil {
-			break
-		}
-		time.Sleep(RETRY_INTERVAL)
+	token, err = getToken(client, auth)
+	if err != nil {
+		return "", errors.New("Error getting token: " + err.Error())
 	}
 	fmt.Println("Token:", token)
 
@@ -141,39 +137,41 @@ func getAuthorization(client *http.Client) (string, error) {
 
 func getToken(client *http.Client, authorization string) (string, error) {
 
-	// Get
-
 	url := AUTH_URI + authorization
-	resp, err := client.Get(url)
-	if err != nil {
-		return "", err
-	} else {
-		defer resp.Body.Close()
-	}
-
-	fmt.Println("Response Status:", resp.Status)
-	fmt.Println("Response Headers:", resp.Header)
-	rbody, _ := ioutil.ReadAll(resp.Body)
-	fmt.Println("Response Body:", string(rbody))
-
-	// Parse
-
 	var m TokenReply
 
-	err = json.Unmarshal(rbody, &m)
-	if err != nil {
-		return "", err
-	}
+	for {
+		// Get
 
-	switch m.Status {
-	case TOKEN_APPROVED:
-		return m.Token, nil
-	case TOKEN_PENDING:
-		return "", errors.New("Token Pending")
-	case TOKEN_DENIED:
-		return "", errors.New("Token Denied")
-	default:
-		return "", errors.New("Uknown Token State: " + m.Status)
+		resp, err := client.Get(url)
+		if err != nil {
+			return "", err
+		} else {
+			defer resp.Body.Close()
+		}
+
+		rbody, _ := ioutil.ReadAll(resp.Body)
+		fmt.Println("Response Status:", resp.Status)
+		fmt.Println("Response Headers:", resp.Header)
+		fmt.Println("Response Body:", string(rbody))
+
+		// Parse
+
+		err = json.Unmarshal(rbody, &m)
+		if err != nil {
+			return "", err
+		}
+
+		switch m.Status {
+		case TOKEN_APPROVED:
+			return m.Token, nil
+		case TOKEN_PENDING:
+			time.Sleep(RETRY_INTERVAL)
+		case TOKEN_DENIED:
+			return "", errors.New("Token denied")
+		default:
+			return "", errors.New("Unknown token status: " + m.Status)
+		}
 	}
 }
 
