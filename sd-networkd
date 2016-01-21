@@ -1,0 +1,32 @@
+#!/bin/bash
+
+build() {
+
+	add_binary /usr/lib/systemd/systemd-networkd
+	add_binary /usr/lib/systemd/systemd-networkd-wait-online
+
+	add_systemd_unit network.target
+	add_systemd_unit network-pre.target
+	add_systemd_unit systemd-networkd.service
+	add_systemd_unit systemd-networkd.socket
+	add_systemd_unit network-online.target
+	add_systemd_unit systemd-networkd-wait-online.service
+
+	add_file /etc/systemd/network/*
+	add_file /etc/resolv.conf
+	add_file /etc/host.conf
+
+	add_file /usr/lib/libnss_dns-2.22.so
+	add_file /usr/lib/libnss_dns.so
+	add_file /usr/lib/libnss_dns.so.2
+
+	add_dir     "/etc/systemd/system/default.target.wants"
+	add_symlink "/etc/systemd/system/default.target.wants/systemd-networkd.service" \
+		    "/usr/lib/systemd/system/systemd-networkd.service"
+}
+
+help() {
+	cat <<HELPEOF
+systemd-networkd
+HELPEOF
+}
