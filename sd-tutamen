@@ -30,5 +30,8 @@ sd-tutamen copies a tutamen config directory specified by \$TUTAMEN_CONFIG
 to /root/.confg/ on the initramfs which can respond to systemd-cryptsetup's
 ask-password request during early boot. The normal password prompt will
 still be available.
+
+The config section and [ask-password] and UUID values for 'collection' and
+'secret' must be available.
 HELPEOF
 }

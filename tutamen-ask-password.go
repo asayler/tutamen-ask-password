@@ -13,9 +13,6 @@ import (
 const (
 	SYSTEMD_ASK_PASSWORD_DIR  = "/run/systemd/ask-password"
 	SYSTEMD_ASK_PATTERN       = "ask.*"
-
-	HC_COLLECTION             = "ebcdb067-469d-44af-b52f-1925e68645b9"
-	HC_SECRET                 = "3828262f-3f0b-490f-bab3-399efe5897ab"
 )
 
 func main() {
@@ -32,13 +29,30 @@ func main() {
 		os.Exit(1)
 	}
 
+	cfg, err := tutamen.GetConfig()
+	if err != nil {
+		fmt.Printf("unable to get tutamen config")
+		os.Exit(1)
+	}
+
+	collection := cfg.GetString("ask-password", "collection")
+	secret     := cfg.GetString("ask-password", "secret")
+	if collection == "" {
+		fmt.Printf("[ask-password]/collection not found")
+		os.Exit(1)
+	}
+	if secret == "" {
+		fmt.Printf("[ask-password]/secret not found")
+		os.Exit(1)
+	}
+
 	for _,ask_file := range matches {
 
 		fmt.Println("matched path:", ask_file);
 		socket := parse_socket(ask_file)
 		if socket != "" {
 			fmt.Println("Socket =", socket)
-			password, err := tutamen.GetSecretSuperEasy(HC_COLLECTION, HC_SECRET)
+			password, err := tutamen.GetSecretSuperEasy(collection, secret)
 			if err == nil {
 				write_password(socket, password)
 			} else {
