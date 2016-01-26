@@ -2,8 +2,6 @@
 
 build() {
 
-	local dir
-
 	if [[ ! $TUTAMEN_CONFIG ]]; then
 		error "TUTAMEN_CONFIG must be specified as an environmental variable"
 		return 1
