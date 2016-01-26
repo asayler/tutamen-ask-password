@@ -20,9 +20,9 @@ build() {
 	add_file /usr/lib/libnss_dns.so
 	add_file /usr/lib/libnss_dns.so.2
 
-	add_dir     "/etc/systemd/system/default.target.wants"
-	add_symlink "/etc/systemd/system/default.target.wants/systemd-networkd.service" \
-		    "/usr/lib/systemd/system/systemd-networkd.service"
+	add_dir     /etc/systemd/system/default.target.wants
+	add_symlink /etc/systemd/system/default.target.wants/systemd-networkd.service \
+		    /usr/lib/systemd/system/systemd-networkd.service
 }
 
 help() {
