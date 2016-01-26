@@ -14,12 +14,6 @@ const (
 	SYSTEMD_ASK_PASSWORD_DIR  = "/run/systemd/ask-password"
 	SYSTEMD_ASK_PATTERN       = "ask.*"
 
-	// These hardcoded values are here until the tutamen package properly
-	// supports the same configuration as pytutamen
-	HC_CERT_PATH              = "/tut.crt"
-	HC_KEY_PATH               = "/tut.key"
-	HC_AC_SERVER              = "ac.tutamen-test.bdr1.volaticus.net"
-	HC_SS_SERVER              = "ss.tutamen-test.bdr1.volaticus.net"
 	HC_COLLECTION             = "ebcdb067-469d-44af-b52f-1925e68645b9"
 	HC_SECRET                 = "3828262f-3f0b-490f-bab3-399efe5897ab"
 )
@@ -38,19 +32,13 @@ func main() {
 		os.Exit(1)
 	}
 
-	tutcli, err := tutamen.NewClientV1(HC_CERT_PATH, HC_KEY_PATH, HC_AC_SERVER, HC_SS_SERVER)
-	if err != nil {
-		fmt.Printf("unable to create Tutamen client:", err.Error())
-		os.Exit(1)
-	}
-
 	for _,ask_file := range matches {
 
 		fmt.Println("matched path:", ask_file);
 		socket := parse_socket(ask_file)
 		if socket != "" {
 			fmt.Println("Socket =", socket)
-			password, err := tutcli.GetSecretEasy(HC_COLLECTION, HC_SECRET)
+			password, err := tutamen.GetSecretSuperEasy(HC_COLLECTION, HC_SECRET)
 			if err == nil {
 				write_password(socket, password)
 			} else {
