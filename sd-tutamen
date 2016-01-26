@@ -2,19 +2,33 @@
 
 build() {
 
+	local dir
+
+	if [[ ! $TUTAMEN_CONFIG ]]; then
+		error "TUTAMEN_CONFIG must be specified as an environmental variable"
+		return 1
+	elif [[ ! -d $TUTAMEN_CONFIG ]]; then
+		error "TUTAMEN_CONFIG must point to a directory"
+		return 1
+	fi
+
+	add_dir /root/.config
+	cp -a "$TUTAMEN_CONFIG" "$BUILDROOT"/root/.config/
+
+	add_file         /etc/ssl/certs/ca-certificates.crt
+
 	add_systemd_unit tutamen-ask-password.path
 	add_systemd_unit tutamen-ask-password.service
 	add_binary       /usr/lib/systemd/tutamen-ask-password
 	add_symlink      /etc/systemd/system/default.target.wants/tutamen-ask-password.path \
 		         /usr/lib/systemd/system/tutamen-ask-password.path
-
-	add_file /etc/ssl/certs/ca-certificates.crt
-	add_file /home/matt/.config/pytutamen_client/accounts/9b6f28e7-fe91-44c1-bb9f-7a400bbc2e57/clients/a2a2883b-45f4-42ef-ad5a-8e3869f8874d/key.pem         /tut.key
-	add_file /home/matt/.config/pytutamen_client/accounts/9b6f28e7-fe91-44c1-bb9f-7a400bbc2e57/clients/a2a2883b-45f4-42ef-ad5a-8e3869f8874d/test_ac_crt.pem /tut.crt
 }
 
 help() {
 	cat <<HELPEOF
-tutamen
+sd-tutamen copies a tutamen config directory specified by \$TUTAMEN_CONFIG
+to /root/.confg/ on the initramfs which can respond to systemd-cryptsetup's
+ask-password request during early boot. The normal password prompt will
+still be available.
 HELPEOF
 }
